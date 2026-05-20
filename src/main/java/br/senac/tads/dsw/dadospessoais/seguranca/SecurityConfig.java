@@ -8,15 +8,25 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtFilter jwtFilter;
+
+    
+    public SecurityConfig(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
 
     // Define a cadeia de filtros HTTP que o Spring Security aplica em cada requisição.
     // A ordem das regras em authorizeHttpRequests importa: a primeira regra que casar é aplicada.
@@ -46,10 +56,16 @@ public class SecurityConfig {
                 
                 // Swagger UI: público para facilitar testes
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                .requestMatchers("/me").authenticated()
+
+                .requestMatchers("/*.html", "/*.css", "/.js").permitAll()
                 
                 // Tudo o mais exige autenticação
                 .anyRequest().authenticated()
-            );
+            )
+
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -71,8 +87,8 @@ public class SecurityConfig {
     // ATENÇÃO: NoOpPasswordEncoder armazena senhas em TEXTO PURO.
     // Use APENAS para fins didáticos - será substituído por BCrypt na Etapa 7.
     @Bean
-    @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+    return new BCryptPasswordEncoder();
     }
+
 }

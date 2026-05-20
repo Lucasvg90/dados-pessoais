@@ -11,7 +11,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-@SenhasIguais(message = "Preste atenção na senha seu burro")
+@SenhasIguais(message = "Preste atenção na senha, seu burro")
 public class PessoaDto {
 
 	private Integer id;
